@@ -18,22 +18,59 @@ const jobWithoutStream = async () => {
     }
 }
 
+let i = 0;
 const jobWithStreams = async () => {
-    const writeStream = fs.createWriteStream(path.join(process.cwd(), "counters.txt"), { encoding: "utf8" });
+    let writeStream;
+    const doJob = () => {
+        writeStream = fs.createWriteStream(path.join(process.cwd(), "counters.txt"), { encoding: "utf8" });
 
-    for (let i = 0; i < 500000; i++) {
-        const buff = Buffer.from(`\n${i}`, "utf-8");
-        writeStream.write(buff);
+        while (i < 100) {
+            const buff = Buffer.from(`\n${i}`, "utf-8");
+
+            i += 1;
+            if (i === 99) {
+                return writeStream.end(buff);
+            }
+
+            if (!writeStream.write(buff)) {
+                break;
+            }
+        }
+
+
     }
 
-    writeStream.end("Final line");
-
-    writeStream.on("finish", () => {
-        console.log("on finished ...")
-    });
+    doJob();
 
     writeStream.on("error", () => {
-        console.log("error happened")
+        // close forcely, in case of happening error
+        writeStream.close();
+    })
+
+    writeStream.on("drain", () => {
+        doJob();
+    });
+
+    writeStream.on("finish", () => {
+        console.log("end")
+    });
+
+    writeStream.on("close", () => {
+        console.log("close");
+    })
+}
+
+const readJobStreamFile = () => {
+
+    const readStream = fs.createReadStream(path.join(process.cwd(), "counters.txt"), { encoding: "utf-8" });
+
+
+    readStream.on("data", (chunk) => {
+        console.log("chunk", chunk)
+    })
+
+    readStream.on("end", () => {
+        console.log("end reading file")
     })
 }
 
@@ -41,4 +78,5 @@ const jobWithStreams = async () => {
 
 console.time("writemany");
 jobWithStreams();
+// readJobStreamFile();
 console.timeEnd("writemany")
