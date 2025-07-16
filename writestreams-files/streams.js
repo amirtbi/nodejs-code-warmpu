@@ -60,23 +60,7 @@ const jobWithStreams = async () => {
     })
 }
 
-const readJobStreamFile = () => {
-
-    const readStream = fs.createReadStream(path.join(process.cwd(), "counters.txt"), { encoding: "utf-8" });
-
-
-    readStream.on("data", (chunk) => {
-        console.log("chunk", chunk)
-    })
-
-    readStream.on("end", () => {
-        console.log("end reading file")
-    })
-}
-
-
 
 console.time("writemany");
 jobWithStreams();
-// readJobStreamFile();
 console.timeEnd("writemany")
