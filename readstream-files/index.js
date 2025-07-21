@@ -1,12 +1,14 @@
 import fs from "fs";
 import path from "path";
+import customStream from "../custome-writable/customWritable.js";
 
 const defaultSrcFolder = path.join(process.cwd(), "readstream-files");
 
-const writeData = 100000
+const writeData = 1e6
 const generateFakeData = (filePath) => {
     let i = 0;
-    const streamWrite = fs.createWriteStream(path.join(defaultSrcFolder, filePath), { encoding: "utf-8" });
+    // const streamWrite = fs.createWriteStream(path.join(defaultSrcFolder, filePath), { encoding: "utf-8" });
+    const streamWrite = new customStream({ highWaterMark: 18000, fileName: path.join(defaultSrcFolder, filePath) });
     const doJob = () => {
         while (i < writeData) {
             const buffer = Buffer.from(` ${i} `, "utf-8");
@@ -77,7 +79,6 @@ const readStreamJob = (srcPath, destPath) => {
         }
 
 
-
         numbers.forEach((number) => {
 
             let n = Number(number);
@@ -100,7 +101,6 @@ const readStreamJob = (srcPath, destPath) => {
     });
 
 }
+generateFakeData("./data.txt");
 
-// generateFakeData("./data.txt");
-
-readStreamJob("./data.txt", "des.txt");
+//readStreamJob("./data.txt", "des.txt");
