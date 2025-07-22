@@ -11,10 +11,6 @@ class FileWriteStream extends Writable {
         this.chunks = [];
         this.chunkSize = 0;
         this.writesCount = 0;
-        console.log("fil;ename", this.fileName)
-
-
-
     }
 
     // Runs before _write
