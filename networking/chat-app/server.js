@@ -2,9 +2,17 @@ import net from "net";
 
 const server = net.createServer();
 
+const clients = [];
 
 server.on("connection", (socket) => {
-    console.log("New connection is started")
+
+    socket.on("data", (msg) => {
+        clients.forEach((client) => {
+            client.write(`\n${msg}`)
+        })
+    })
+
+    clients.push(socket);
 });
 
 server.listen(8000, () => {
