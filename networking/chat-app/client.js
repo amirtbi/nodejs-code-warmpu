@@ -15,14 +15,38 @@ const reconnect = () => {
     }, 10000)
 }
 
+
+const clearLine = (dir) => {
+    return new Promise((resolve, reject) => {
+        process.stdout.clearLine(dir, () => {
+            resolve();
+        })
+    })
+}
+
+const moveCursor = (dx, dy) => {
+    return new Promise((resolve, reject) => {
+        process.stdout.moveCursor(dx, dy, () => {
+            resolve();
+        })
+    })
+}
+
+
+const ask = async (socket) => {
+    const message = await rl.question("Enter your message >");
+    await moveCursor(0, -1)
+    await clearLine(0);
+    socket.write(message);
+}
+
 const initSocketConnection = () => {
 
     const socket = net.createConnection({ host: "127.0.0.1", port: 8000 }, async () => {
         console.log("Connected to the server!");
 
         try {
-            const message = await rl.question("Enter your message >");
-            socket.write(message);
+            ask(socket);
         }
         catch (e) {
             console.log("Error during writing cline message")
@@ -30,8 +54,11 @@ const initSocketConnection = () => {
 
     });
 
+
+
     socket.on("data", (msg) => {
-        console.log("message from server >", msg.toString("utf-8"));
+        console.log(msg.toString("utf-8"));
+        ask(socket)
     })
 
     socket.on("error", () => {
