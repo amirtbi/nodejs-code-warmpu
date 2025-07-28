@@ -1,18 +1,23 @@
 import net from "net";
 import readline from "readline/promises";
 
-
+let id;
+let socket;
+let retry = 0
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 })
 
 
 const reconnect = () => {
-    setTimeout(() => {
-        console.log("Retrying to Connect...")
-        initSocketConnection();
-    }, 10000)
+    while (retry <= 3) {
+        setTimeout(() => {
+            console.log("Retrying to Connect...")
+            initSocketConnection();
+            retry += 1;
+        }, 3000)
+    }
 }
 
 
@@ -33,48 +38,52 @@ const moveCursor = (dx, dy) => {
 }
 
 
-const ask = async (socket) => {
+const ask = async () => {
     const message = await rl.question("Enter your message >");
     await moveCursor(0, -1)
     await clearLine(0);
-    socket.write(message);
+    socket.write(`${id}-message-${message}`);
 }
 
 const initSocketConnection = () => {
-
-    const socket = net.createConnection({ host: "127.0.0.1", port: 8000 }, async () => {
-        console.log("Connected to the server!");
-
+    socket = net.createConnection({ host: "127.0.0.1", port: 8000 }, () => {
         try {
-            ask(socket);
+            console.log("New Connected to server!");
+            retry = 0;
         }
         catch (e) {
-            console.log("Error during writing cline message")
+            console.log("Connection failed!");
+            process.exit()
         }
+    })
 
-    });
-
-
-
-    socket.on("data", (msg) => {
-        console.log(msg.toString("utf-8"));
-        ask(socket)
+    socket.on("data", async (data) => {
+        console.log()
+        await moveCursor(0, -1)
+        await clearLine(0);
+        if (data.toString("utf-8").substring(0, 2) === "id") {
+            id = data.toString("utf-8").substring(3);
+            console.log(`Your id is ${id}!`);
+        } else {
+            console.log(data.toString("utf-8"));
+        }
+        ask();
     })
 
     socket.on("error", () => {
-        console.log("had error");
+        console.log("client error");
         reconnect();
     });
 
     socket.on("close", (hadError) => {
-        console.log(hadError ? "Error closed the connection" : "closed");
+        console.log(hadError ? "client closed the connection" : "client closed");
         reconnect();
     });
 
     socket.on("end", () => {
-        console.log("Ended")
+        console.log("client end")
     });
 
-}
+};
 
 initSocketConnection();
