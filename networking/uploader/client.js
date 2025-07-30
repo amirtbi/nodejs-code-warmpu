@@ -1,25 +1,41 @@
 import net from "net";
-import fs from "fs";
+import fs, { read } from "fs";
 
 const host = "127.0.0.1";
 const port = 8000;
-const filePath = "./video.mp4";
+const filePath = "./huge-content.txt";
 
-let socket;
 const initConnection = () => {
+    let socket;
+    let fileReadStream;
     socket = net.createConnection({ host, port }, () => {
-
         try {
-            const readStream = fs.createReadStream(filePath);
-            readStream.pipe(socket);
+
+            fileReadStream = fs.createReadStream(filePath);
+
+            // readStream.pipe(socket);
+
+            fileReadStream.on("data", (data) => {
+                if (!socket.write(data)) {
+                    fileReadStream.pause();
+                }
+            })
+
+            fileReadStream.on("end", () => {
+                console.log("The file uploaded successfully")
+                socket.end();
+            })
+
         } catch (e) {
             console.log("Client failed")
         }
     })
 
-    socket.on("data", (data) => {
-        console.log(data.toString("utf-8"));
-    })
+    socket.on("drain", () => {
+        fileReadStream.resume();
+    });
+
+
     socket.on("end", () => {
         console.log("Client ended");
     })
