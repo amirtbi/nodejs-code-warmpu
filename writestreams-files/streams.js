@@ -19,48 +19,44 @@ const jobWithoutStream = async () => {
 }
 
 let i = 0;
+const LIMIT = 500_000_000;
+
 const jobWithStreams = async () => {
-    let writeStream;
-    const doJob = () => {
-        writeStream = fs.createWriteStream(path.join(process.cwd(), "counters.txt"), { encoding: "utf8" });
+    const writeStream = fs.createWriteStream(path.join(process.cwd(), "counters.txt"), { encoding: "utf8" });
 
-        while (i < 100) {
+    const write = () => {
+        let ok = true;
+        while (i < LIMIT && ok) {
             const buff = Buffer.from(`\n${i}`, "utf-8");
-
-            i += 1;
-            if (i === 99) {
+            i++;
+            if (i === LIMIT) {
                 return writeStream.end(buff);
             }
-
-            if (!writeStream.write(buff)) {
-                break;
-            }
+            ok = writeStream.write(buff);
         }
 
+        if (i < LIMIT) {
+            writeStream.once("drain", write);
+        }
+    };
 
-    }
-
-    doJob();
-
-    writeStream.on("error", () => {
-        // close forcely, in case of happening error
-        writeStream.close();
-    })
-
-    writeStream.on("drain", () => {
-        doJob();
-    });
+    write();
 
     writeStream.on("finish", () => {
-        console.log("end")
+        console.log("✅ Finished writing");
     });
 
     writeStream.on("close", () => {
-        console.log("close");
-    })
-}
+        console.log("🛑 Stream closed");
+    });
 
+    writeStream.on("error", (err) => {
+        console.error("❌ Write error:", err);
+        writeStream.close();
+    });
+};
 
 console.time("writemany");
-jobWithStreams();
-console.timeEnd("writemany")
+jobWithStreams().then(() => {
+    console.timeEnd("writemany");
+});

@@ -3,8 +3,10 @@ import fs from "fs";
 import path from "path"
 
 const server = net.createServer();
+const filePath = process.argv[2];
 
-const storagePath = path.join(process.cwd(), "storage", "huge-content.txt");
+const storagePath = path.join(process.cwd(), "storage", path.basename(filePath));
+
 
 server.on("connection", (socket) => {
     console.log("New Connection!");

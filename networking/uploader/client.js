@@ -1,9 +1,10 @@
 import net from "net";
-import fs, { read } from "fs";
+import fs from "fs";
+import path from "path";
 
 const host = "127.0.0.1";
 const port = 8000;
-const filePath = "./huge-content.txt";
+const filePath = path.basename(process.argv[2]);
 
 const initConnection = () => {
     let socket;
@@ -12,6 +13,8 @@ const initConnection = () => {
         try {
 
             fileReadStream = fs.createReadStream(filePath);
+
+            console.log(`----fileName:${filePath}-----`);
 
             // readStream.pipe(socket);
 
