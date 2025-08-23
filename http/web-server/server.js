@@ -53,6 +53,7 @@ server.on("request", (request, response) => {
 
     if (request.url === "/upload" && request.method === "POST") {
         response.setHeader("Content-type", "application/json");
+
         const writeStream = fs.createWriteStream(path.join(process.cwd(), "storage", "image.jpeg"));
         request.pipe(writeStream);
         response.statusCode = 200;
