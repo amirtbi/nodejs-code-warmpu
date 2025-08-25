@@ -1,30 +1,62 @@
 import Butter from "./index.js";
 import path from "path";
 
-const butter = new Butter();
+const users = [
+    { id: 1, name: "Amir", username: "amir@2", password: "string" }
+];
+const posts = [{
+    id: 1,
+    title: "This is post title",
+    body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+    userId: 1
+},
+{
+    id: 2,
+    title: "This is post title 2",
+    body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt  qui officia deserunt mollit anim id est laborum",
+    userId: 1
+},
+{
+    id: 3,
+    title: "This is post title 3",
+    body: "Lorem ipsum dolor sit amet, consectetur adipisci sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+    userId: 1
+}]
 
 
-butter.route("get", "/", (req, res) => {
+
+const PORT = 9000;
+
+const server = new Butter();
+
+
+
+
+server.route("get", "/", (req, res) => {
     const filePath = path.join(process.cwd(), "..", "public", "index.html");
     res.statusCode(200).sendFile(filePath, "text/html");
 })
 
-butter.route("post", "/login", (req, res) => {
-
-    res.statusCode(200).json({ message: "login successfully" })
-})
-
-butter.route("get", "/style.css", (req, res) => {
+server.route("get", "/style.css", (req, res) => {
     const filePath = path.join(process.cwd(), "..", "public", "style.css");
     res.statusCode(200).sendFile(filePath, "text/css");
 })
 
-
-butter.route("get", "/script.js", (req, res) => {
+server.route("get", "/script.js", (req, res) => {
     const filePath = path.join(process.cwd(), "..", "public", "script.js");
     res.statusCode(200).sendFile(filePath, "text/javascript");
 })
 
-butter.listen(9000, () => {
-    console.log("Listening to port 9000")
+server.route("get", "/api/posts", (req, res) => {
+
+    const postList = posts.map((post) => {
+        const user = users.find(user => user.id === post.userId)
+        post.author = user.username || "";
+        return post;
+    })
+    res.statusCode(200).json(postList);
+})
+
+server.listen(PORT, () => {
+    console.log("Listening to port 9000");
 })
